@@ -1,0 +1,100 @@
+import numpy as np
+import tensorflow as tf
+
+from data_utils import load_CIFAR100 as load
+from neural_net import TwoLayerNet
+
+Xtr, Ytr, Xte, Yte = load('cifar-100-python')
+
+i_placeholder = tf.placeholder(tf.float32, shape=[32,32,3], name='images')   
+l_placeholder = tf.placeholder(tf.int64, shape=(20,),name='labels')
+
+# Convolutional layer
+def conv2d(x, W):
+    return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
+    
+
+# Max Pooling layer
+def max_pool_nxn(x, n):
+    return tf.nn.max_pool(x, size=[1, n, n, 1], strides=[1, n, n, 1], padding='SAME')
+
+
+def apply_net(x, dropout=False, d_rate=0.95):
+    # Convolution with 4 feature maps
+    W1 = tf.Variable(tf.truncated_normal(shape=[5, 5, 3, 4],stddev=1e-4))
+    b1 = tf.constant(0.1, [4])
+    h1 = tf.nn.relu(conv2d(x, W1) + b1)
+    
+    # Max Pooling
+    h1 = max_pool_nxn(h1, 2)
+    
+    # Dropout
+    if dropout:
+        h1 = tf.nn.dropout(h1, d_rate)
+
+    # Convolution with 6 feature maps
+    W2 = tf.Variable(tf.truncated_normal(shape=[5, 5, 4, 6],stddev=1e-4))
+    b2 = tf.constant(0.1, [6])
+    h2 = tf.nn.relu(conv2d(h1, W2) + b2)
+    
+    # Max Pooling
+    h2 = max_pool_nxn(h2, 2)
+    
+    # Dropout
+    if dropout:
+        h2 = tf.nn.dropout(h2, d_rate)
+
+    # Fully connected layer
+    input_size = 6*8*8
+    W_conn = tf.Variable(tf.truncated_normal([input_size, 1024],1e-4))
+    bconn = tf.Variable(tf.truncated_normal([1024]))
+    h3 = tf.reshape(conv2, [-1, W_conn.get_shape().as_list()[0]]) # Reshape conv2 output to fit dense layer input
+    h3 = tf.nn.relu(tf.matmul(h3, W1) + bconn) # Relu activation
+    h3 = tf.nn.dropout(h3, d_rate) # Apply dropout
+
+    # Output, class prediction
+    Wout = tf.Variable(tf.truncated_normal([1024,20]))
+    bout = tf.Variable(tf.truncated_normal([20]))
+    out = tf.matmul(h3, Wout) + bout
+    return out
+    
+cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(pred, y))
+    
+optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
+    
+
+batch_size = 100
+num_train = i_placeholder.shape[0]
+
+# Construct model
+pred = apply_net(x)
+
+# Evaluate model
+correct_pred = tf.equal(tf.argmax(pred,1), tf.argmax(l_placeholder,1))
+accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+
+# Initializing the variables
+init = tf.initialize_all_variables()
+
+# Launch the graph
+with tf.Session() as sess:
+    sess.run(init)
+    step = 1
+    # Keep training until reach max iterations
+    while step * batch_size < num_train:
+        index = np.random.random_integers(0,num_train-1,batch_size)
+        x_batch = x[index]
+        y_batch = y[index]
+        # Fit training using batch data
+        sess.run(optimizer, feed_dict={i_placeholder: x_batch, l_placeholder: y_batch, keep_prob: dropout})
+        if step % display_step == 0:
+            # Calculate batch accuracy
+            acc = sess.run(accuracy, feed_dict={i_placeholder: x_batch, l_placeholder: y_batch, keep_prob: 1.})
+            # Calculate batch loss
+            loss = sess.run(cost, feed_dict={i_placeholder: x_batch, l_placeholder: y_batch, keep_prob: 1.})
+            print ("Iter " + str(step*batch_size) + ", Minibatch Loss= " + "{:.6f}".format(loss) + ", Training Accuracy= " + "{:.5f}".format(acc))
+        step += 1
+    print "Optimization Finished!"
+    # Calculate accuracy for 256 mnist test images
+    print "Testing Accuracy:", sess.run(accuracy, feed_dict={i_placeholder: mnist.test.images[:256], l_placeholder: mnist.test.labels[:256], keep_prob: 1.})
+

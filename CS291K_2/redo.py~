@@ -1,0 +1,119 @@
+import pickle
+import numpy as np
+import os
+from scipy.misc import imread
+import matplotlib.pyplot as plt
+import sys
+
+from data_utils import load_CIFAR100 as load
+from neural_net import TwoLayerNet
+
+path = sys.argv[1]
+
+def redo(path):
+    Xtr, Ytr, Xte, Yte = load(path)
+    
+    num_train = 49000
+    num_val = 1000
+    num_test = 10000
+    
+    X_tr = Xtr[range(num_train)]
+    y_tr = Ytr[range(num_train)]
+    X_val = Xtr[range(num_train, num_train + num_val)]
+    y_val = Ytr[range(num_train, num_train + num_val)]
+    Xte = Xte[range(num_test)]
+    Yte = Yte[range(num_test)]
+    
+    norm = np.mean(Xtr)
+    X_tr -= norm
+    X_val -= norm
+    Xte -= norm
+        
+    X_tr, X_val, Xte = X_tr.reshape(num_train, -1), X_val.reshape(num_val, -1), Xte.reshape(num_test, -1)
+    
+    input_size = 32 * 32 * 3
+    hidden_size = 50
+    num_classes = 10
+    net = TwoLayerNet(input_size, hidden_size, num_classes)
+
+    stats = net.train(X_tr, y_tr, X_val, y_val,
+                num_iters=1000, batch_size=200,
+                learning_rate=0.002, learning_rate_decay=0.95,
+                reg=1e-3, verbose=False)
+
+    stats = net.train(X_tr, y_tr, X_val, y_val,
+                num_iters=1000, batch_size=300,
+                learning_rate=0.001, learning_rate_decay=0.95,
+                reg=1e-3, verbose=False)
+
+    stats = net.train(X_tr, y_tr, X_val, y_val,
+                num_iters=1000, batch_size=400,
+                learning_rate=0.001, learning_rate_decay=0.95,
+                reg=1e-3, verbose=False)
+
+    stats = net.train(X_tr, y_tr, X_val, y_val,
+                num_iters=1000, batch_size=500,
+                learning_rate=0.001, learning_rate_decay=0.95,
+                reg=1e-3, verbose=False)
+
+    stats = net.train(X_tr, y_tr, X_val, y_val,
+                num_iters=1000, batch_size=500,
+                learning_rate=0.001, learning_rate_decay=0.95,
+                reg=1e-3, verbose=False)
+
+    stats = net.train(X_tr, y_tr, X_val, y_val,
+                num_iters=1000, batch_size=500,
+                learning_rate=0.001, learning_rate_decay=0.95,
+                reg=1e-3, verbose=False)
+
+    stats = net.train(X_tr, y_tr, X_val, y_val,
+                num_iters=1000, batch_size=500,
+                learning_rate=0.001, learning_rate_decay=0.95,
+                reg=1e-3, verbose=False)
+
+    train_acc = net.accuracy(X_tr, y_tr)
+    print 'Training accuracy: ', train_acc
+    
+    val_acc = net.accuracy(X_val, y_val)
+    print 'Validation accuracy: ', val_acc
+    
+    test_acc = net.accuracy(Xte, Yte)
+    print 'Testing accuracy: ', test_acc
+    
+    
+# Construct model
+pred = apply_net(x)
+
+# Define loss and optimizer
+cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(pred, y))
+optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
+
+# Evaluate model
+correct_pred = tf.equal(tf.argmax(pred,1), tf.argmax(y,1))
+accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+
+# Initializing the variables
+init = tf.initialize_all_variables()
+
+# Launch the graph
+with tf.Session() as sess:
+    sess.run(init)
+    step = 1
+    # Keep training until reach max iterations
+    while step * batch_size < training_iters:
+        batch_xs, batch_ys = mnist.train.next_batch(batch_size)
+        # Fit training using batch data
+        sess.run(optimizer, feed_dict={x: batch_xs, y: batch_ys, keep_prob: dropout})
+        if step % display_step == 0:
+            # Calculate batch accuracy
+            acc = sess.run(accuracy, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
+            # Calculate batch loss
+            loss = sess.run(cost, feed_dict={x: batch_xs, y: batch_ys, keep_prob: 1.})
+            print "Iter " + str(step*batch_size) + ", Minibatch Loss= " + "{:.6f}".format(loss) + ", Training Accuracy= " + "{:.5f}".format(acc)
+        step += 1
+    print "Optimization Finished!"
+    # Calculate accuracy for 256 mnist test images
+    print "Testing Accuracy:", sess.run(accuracy, feed_dict={x: mnist.test.images[:256], y: mnist.test.labels[:256], keep_prob: 1.})
+    
+if __name__ == "__main__":
+    redo(path)
