@@ -7,7 +7,7 @@ import sys
 from data_utils import load_CIFAR100 as load
 
 path = sys.argv[1]
-
+#file = open('loss.txt','w')
 batch_size = 100
 num_train = 49000
 num_val = 1000
@@ -21,7 +21,7 @@ first_layer = 20
 second_layer = 50
 verbose = True
 test = True
-fsize = 10
+fsize = 5
 
 Xtr, Ytr, Xte, Yte = load(path)
 
@@ -112,9 +112,14 @@ with tf.Session() as sess:
             acc = sess.run(accuracy, feed_dict={i_placeholder: x_batch, l_placeholder: y_batch, drop_placeholder: 1.})
             b_loss = sess.run(loss, feed_dict={i_placeholder: x_batch, l_placeholder: y_batch, drop_placeholder: 1.})
             print ("Iter " + str(step*batch_size) + ", Minibatch Loss= " + "{:.6f}".format(b_loss) + ", Training Accuracy= " + "{:.5f}".format(acc))
+            iteration = step*batch_size
+            # file.write(str(iteration))
+            # file.write(": ")
+            # file.write(str(b_loss))
+            # file.write("\n")
         step += 1
     print "Optimization Finished!"
-
+    #file.close()
     #Calculate accuracy for test images
     if test:
         step = 0
